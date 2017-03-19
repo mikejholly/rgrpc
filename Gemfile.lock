@@ -1,0 +1,33 @@
+GIT
+  remote: https://github.com/igrigorik/http-2.git
+  revision: ea9cbd06d0e05641a5d6cfe2f31d584d3f839721
+  ref: ea9cbd06d0e05641a5d6cfe2f31d584d3f839721
+  specs:
+    http-2 (0.8.3)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    byebug (9.0.5)
+    coderay (1.1.1)
+    google-protobuf (3.2.0.2)
+    method_source (0.8.2)
+    pry (0.10.4)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
+      slop (~> 3.4)
+    pry-byebug (3.4.0)
+      byebug (~> 9.0)
+      pry (~> 0.10)
+    slop (3.6.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  google-protobuf
+  http-2!
+  pry-byebug
+
+BUNDLED WITH
+   1.14.6
