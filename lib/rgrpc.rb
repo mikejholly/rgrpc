@@ -1,4 +1,4 @@
 # frozen_string_literal: true
 
-require 'rgrpc/server'
-require 'rgrpc/client'
+require_relative './rgrpc/server'
+require_relative './rgrpc/client'
