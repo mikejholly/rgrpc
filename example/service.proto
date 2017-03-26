@@ -1,0 +1,18 @@
+syntax="proto3";
+
+message Foo {
+  string name = 1;
+  uint64 id = 2;
+}
+
+message FooRequest {
+  string name = 1;
+}
+
+message FooResponse {
+  Foo foos = 1;
+}
+
+service FooService {
+  rpc GetFoos (FooRequest) returns (FooResponse);
+}

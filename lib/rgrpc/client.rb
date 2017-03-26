@@ -58,23 +58,10 @@ module RGrpc
       stream.headers(head, end_stream: false)
       stream.data('Hello World!')
 
-      loop do
-        begin
-          data = @sock.read_nonblock(1024)
-          @conn << data
-        rescue IO::WaitReadable
-          IO.select([@sock])
-          retry
-        rescue IO::WaitWritable
-          IO.select(nil, [@sock])
-          retry
-        end
-      end
+      sleep 0.005 until done
 
       [res, body.string]
     end
-
-    private
 
     def connect
       @logger.info("connecting to #{@host}:#{@port}")
@@ -97,6 +84,20 @@ module RGrpc
 
       @connected = true
 
+      Thread.new do
+        loop do
+          begin
+            data = @sock.read_nonblock(1024)
+            @conn << data
+          rescue IO::WaitReadable
+            IO.select([@sock])
+            retry
+          rescue IO::WaitWritable
+            IO.select(nil, [@sock])
+            retry
+          end
+        end
+      end
     end
   end
 end
