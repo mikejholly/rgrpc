@@ -1,6 +1,27 @@
 # frozen_string_literal: true
 
 require_relative '../lib/rgrpc'
+require_relative 'service_pb'
 
-srv = RGrpc::Server.new(host: 'localhost', port: 8080)
-srv.start
+class Service
+  def call(headers, message)
+    case headers[':path']
+    when 'foo.service/Search' then handle_search(headers, message)
+    end
+  end
+
+  private
+
+  def handle_search(headers, message)
+    res = FooResponse.new(foos: [])
+    res.foos << Foo.new(name: 'Mike', id: 1)
+    res.foos << Foo.new(name: 'Bill', id: 2)
+
+    [RGrpc::Codes::OK, res]
+  end
+end
+
+srv = RGrpc::Server.new(handler: Service.new,
+                        host: 'localhost',
+                        port: 8080)
+srv.listen

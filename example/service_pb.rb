@@ -12,7 +12,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     optional :name, :string, 1
   end
   add_message "FooResponse" do
-    optional :foos, :message, 1, "Foo"
+    repeated :foos, :message, 1, "Foo"
   end
 end
 

@@ -8,17 +8,20 @@ require 'thread'
 
 module RGrpc
   class Server
-    def initialize(host:,
+    def initialize(handler:,
+                   host:,
                    port: 443,
                    logger: Logger.new($stdout))
+      @handler = handler
       @host = host
       @port = port
       @logger = logger
       @server = nil
     end
 
-    def start
+    def listen
       connect
+
       @logger.info('entering main loop')
       loop do
         Thread.new(@server.accept) { |conn| handle_conn(conn) }
@@ -66,36 +69,43 @@ module RGrpc
     end
 
     def on_stream(stream)
-      buf = StringIO.new
-      req = {}
+      body = ''
+      head = {}
 
       stream.on(:active) { @logger.debug('client opened new stream') }
       stream.on(:close)  { @logger.debug('stream closed') }
 
       stream.on(:headers) do |h|
-        req = Hash[*h.flatten]
+        head = Hash[*h.flatten]
         @logger.debug("request headers #{h}")
       end
 
       stream.on(:data) do |d|
         @logger.debug("request data #{d}")
-        buf << d
+        body += d
       end
 
       stream.on(:half_close) do
-        do_response(stream, req, buf.string)
+        on_half_close(stream, head, body)
       end
     end
 
-    def do_response(stream, req, body)
+    def on_half_close(stream, head, body)
+      message = Zlib::Inflate.inflate(body)
+      code, res = @handler.call(head, message)
+      do_response(stream, code, res.class.encode(res))
+    end
+
+    def do_response(stream, code, body)
       @logger.info('sending response')
 
-      body = 'HELLO TO YOU FRIEND!'
-      stream.headers({ ':status' => '200',
-                       'content-length' => body.bytesize.to_s,
-                       'content-type' => 'text/plain' },
-                     end_stream: false)
-      stream.data(body)
+      head = { ':status' => '200',
+               'grpc-encoding' => 'gzip',
+               'grpc-status' => code.to_s,
+               'content-type' => 'application/grpc+proto' }
+
+      stream.headers(head, end_stream: false)
+      stream.data(Zlib::Deflate.deflate(body))
     end
 
     def connect

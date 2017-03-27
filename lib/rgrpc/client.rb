@@ -5,6 +5,8 @@ require 'http/2'
 require 'logger'
 require 'socket'
 require 'thread'
+require 'stringio'
+require 'zlib'
 
 Thread.abort_on_exception = true
 
@@ -22,20 +24,25 @@ module RGrpc
       @mutex = Mutex.new
     end
 
-    def send
-      connect unless @connected
+    def rpc(path, message, returns: klass)
+      @mutex.synchronize do
+        connect unless @connected
+      end
 
       stream = @conn.new_stream
       done = false
-      body = StringIO.new
+      body = ''
       res = {}
 
       head = {
         ':scheme' => 'http',
         ':method' => 'POST',
         ':authority' => [@host, @port].join(':'),
-        ':path' => '/',
-        'accept' => '*/*'
+        ':path' => path,
+        'grpc-timeout' => '20S',
+        'content-type' => 'application/grpc+proto',
+        'user-agent' => 'grpc-ruby-rgrpc/' + RGrpc::VERSION,
+        'grpc-encoding' => 'gzip'
       }
 
       stream.on(:headers) do |h|
@@ -45,7 +52,7 @@ module RGrpc
 
       stream.on(:data) do |d|
         @logger.debug("received data chunk #{d}")
-        body << d
+        body += d
       end
 
       stream.on(:close) do
@@ -54,14 +61,16 @@ module RGrpc
       end
 
       stream.on(:half_close) { @logger.debug('closing client end of stream') }
-
       stream.headers(head, end_stream: false)
-      stream.data('Hello World!')
+      encoded = message.class.encode(message)
+      stream.data(Zlib::Deflate.deflate(encoded))
 
-      sleep 0.005 until done
+      sleep 0.001 until done
 
-      [res, body.string]
+      [res, returns.decode(Zlib::Inflate.inflate(body))]
     end
+
+    private
 
     def connect
       @logger.info("connecting to #{@host}:#{@port}")
