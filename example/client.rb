@@ -7,7 +7,7 @@ start = Time.now
 
 cl = RGRPC::Client.new(host: 'localhost',
                        port: 8080,
-                       secure: false)
+                       secure: true)
 
 puts "connect: #{Time.now - start}"
 
