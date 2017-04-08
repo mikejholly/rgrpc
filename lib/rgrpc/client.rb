@@ -10,7 +10,7 @@ require 'zlib'
 
 Thread.abort_on_exception = true
 
-module RGrpc
+module RGRPC
   class Client
     def initialize(host:,
                    port:,
@@ -24,7 +24,7 @@ module RGrpc
       @mutex = Mutex.new
     end
 
-    def rpc(path, message, returns: klass)
+    def rpc(path, message, returns: klass, timeout: 10_000)
       @mutex.synchronize do
         connect unless @connected
       end
@@ -39,9 +39,9 @@ module RGrpc
         ':method' => 'POST',
         ':authority' => [@host, @port].join(':'),
         ':path' => path,
-        'grpc-timeout' => '20S',
+        'grpc-timeout' => "#{timeout}m",
         'content-type' => 'application/grpc+proto',
-        'user-agent' => 'grpc-ruby-rgrpc/' + RGrpc::VERSION,
+        'user-agent' => 'grpc-ruby-rgrpc/' + RGRPC::VERSION,
         'grpc-encoding' => 'gzip'
       }
 

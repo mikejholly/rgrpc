@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module RGrpc
+module RGRPC
   module Codes
     OK = 0
     CANCELED = 1

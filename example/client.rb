@@ -5,7 +5,7 @@ require_relative 'service_pb'
 
 start = Time.now
 
-cl = RGrpc::Client.new(host: 'localhost', port: 8080)
+cl = RGRPC::Client.new(host: 'localhost', port: 8080)
 
 puts "connect: #{Time.now - start}"
 

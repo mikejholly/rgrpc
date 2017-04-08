@@ -17,11 +17,11 @@ class Service
     res.foos << Foo.new(name: 'Mike', id: 1)
     res.foos << Foo.new(name: 'Bill', id: 2)
 
-    [RGrpc::Codes::OK, res]
+    [RGRPC::Codes::OK, res]
   end
 end
 
-srv = RGrpc::Server.new(handler: Service.new,
+srv = RGRPC::Server.new(handler: Service.new,
                         host: 'localhost',
                         port: 8080)
 srv.listen

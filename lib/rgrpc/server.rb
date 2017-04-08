@@ -6,7 +6,7 @@ require 'logger'
 require 'socket'
 require 'thread'
 
-module RGrpc
+module RGRPC
   class Server
     def initialize(handler:,
                    host:,
