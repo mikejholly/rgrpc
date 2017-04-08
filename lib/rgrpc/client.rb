@@ -12,9 +12,15 @@ Thread.abort_on_exception = true
 
 module RGRPC
   class Client
+    Response = Struct.new(:headers, :body)
+
     def initialize(host:,
                    port:,
-                   logger: Logger.new($stdout))
+                   logger: Logger.new($stdout),
+                   secure: false,
+                   tls_cert: nil,
+                   tls_key: nil,
+                   tls_ca: nil)
       @host = host
       @port = port
       @logger = logger
@@ -22,6 +28,10 @@ module RGRPC
       @sock = nil
       @conn = nil
       @mutex = Mutex.new
+      @secure = secure
+      @tls_cert = tls_cert
+      @tls_key = tls_key
+      @tls_ca = tls_ca
     end
 
     def rpc(path, message, returns: klass, timeout: 10_000)
@@ -67,15 +77,47 @@ module RGRPC
 
       sleep 0.001 until done
 
-      [res, returns.decode(Zlib::Inflate.inflate(body))]
+      Response.new(res, returns.decode(Zlib::Inflate.inflate(body)))
     end
 
     private
 
+    def tcp_socket
+      tcp = TCPSocket.new(@host, @port)
+      return tcp unless @secure
+
+      ctx = OpenSSL::SSL::SSLContext.new
+      ctx.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      ctx.ssl_version = :TLSv1_2
+      ctx.client_ca = @tls_ca if @tls_ca
+
+      if @tls_cert && @tls_key
+        ctx.cert = OpenSSL::X509::Certificate.new(@tls_cert)
+        ctx.key = OpenSSL::PKey::RSA(@tls_key)
+      end
+
+      ctx.alpn_protocols = [ALPN_DRAFT]
+      ctx.alpn_select_cb = lambda do |protocols|
+        @logger.debug("ALPN protocols supported by server: #{protocols}")
+        ALPN_DRAFT if protocols.include?(ALPN_DRAFT)
+      end
+
+      sock = OpenSSL::SSL::SSLSocket.new(tcp, ctx)
+      sock.sync_close = true
+      sock.hostname = @host
+      sock.connect
+
+      if sock.alpn_protocol != ALPN_DRAFT
+        raise "Failed to negotiate #{ALPN_DRAFT} via ALPN"
+      end
+
+      sock
+    end
+
     def connect
       @logger.info("connecting to #{@host}:#{@port}")
 
-      @sock = TCPSocket.new(@host, @port)
+      @sock = tcp_socket
       @conn = HTTP2::Client.new
 
       @conn.on(:frame) do |bytes|

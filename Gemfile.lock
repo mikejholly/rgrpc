@@ -5,6 +5,13 @@ GIT
   specs:
     http-2 (0.8.3)
 
+PATH
+  remote: .
+  specs:
+    rgrpc (0.1.0)
+      google-protobuf (~> 3.2)
+      http-2 (~> 0.8.3)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -25,9 +32,9 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  google-protobuf
   http-2!
   pry-byebug
+  rgrpc!
 
 BUNDLED WITH
    1.14.6

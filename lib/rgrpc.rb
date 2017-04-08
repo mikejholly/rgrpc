@@ -5,5 +5,6 @@ require_relative './rgrpc/client'
 require_relative './rgrpc/codes'
 
 module RGRPC
-  VERSION = '0.0.1'
+  ALPN_DRAFT = 'h2'
+  VERSION = '0.1.0'
 end

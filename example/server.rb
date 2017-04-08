@@ -12,7 +12,7 @@ class Service
 
   private
 
-  def handle_search(headers, message)
+  def handle_search(_headers, _message)
     res = FooResponse.new(foos: [])
     res.foos << Foo.new(name: 'Mike', id: 1)
     res.foos << Foo.new(name: 'Bill', id: 2)
@@ -23,5 +23,8 @@ end
 
 srv = RGRPC::Server.new(handler: Service.new,
                         host: 'localhost',
-                        port: 8080)
+                        port: 8080,
+                        secure: false,
+                        tls_cert: File.read('/tmp/test.crt'),
+                        tls_key: File.read('/tmp/test.key'))
 srv.listen
