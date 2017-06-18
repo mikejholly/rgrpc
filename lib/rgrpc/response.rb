@@ -1,21 +1,17 @@
 # frozen_string_literal: true
 
-module GRPC
-  # Models a gRPC response
+module RGRPC
+  # Models a HTTP2 response
   class Response
-    def initialize(headers, message, coder)
+    attr_accessor :headers, :data
+
+    def initialize(headers, data)
       @headers = headers
-      @message = message
-      @coder = coder
+      @data = data
     end
 
-    def headers
-      @headers
-    end
-
-    def message
-      decoded = coder.decode(@message)
-      Zlib::Inflate.inflate(decoded)
+    def header(name)
+      @headers[name]
     end
   end
 end

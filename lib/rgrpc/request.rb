@@ -1,31 +1,39 @@
 # frozen_string_literal: true
 
 module RGRPC
-  # Models a gRPC request
+  # Models an HTTP2 request
   class Request
-    def initialize(host, port, path, message, coder, timeout = 0)
-      @host = host
-      @port = port
+    attr_accessor :path, :data
+    attr_reader :headers
+
+    def initialize(path, data)
       @path = path
-      @message = message
-      @coder = coder
-      @timeout = timeout
+      @data = data
+      @headers = { ':scheme' => 'http' }
     end
 
-    def message
-      encoded = @coder.encode(@message)
-      Zlib::Deflate.deflate(encoded)
+    def header(name, value)
+      @headers[name] = value
     end
 
-    def headers
-      { ':scheme' => 'http',
-        ':method' => 'POST',
-        ':authority' => [@host, @port].join(':'),
-        ':path' => @path,
-        'grpc-timeout' => "#{@timeout}m",
-        'content-type' => 'application/grpc+proto',
-        'user-agent' => 'grpc-ruby-rgrpc/' + RGRPC::VERSION,
-        'grpc-encoding' => 'gzip' }
+    def content_type=(v)
+      @headers['content-type'] = v
+    end
+
+    def method=(v)
+      @headers[':method'] = v
+    end
+
+    def authority=(v)
+      @headers[':authority'] = v
+    end
+
+    def path=(v)
+      @headers[':path'] = v
+    end
+
+    def user_agent=(v)
+      @headers['user-agent'] = v
     end
   end
 end

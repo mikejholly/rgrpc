@@ -12,18 +12,14 @@ module RGRPC
     def initialize(handler:,
                    host:,
                    port: 443,
-                   logger: Logger.new($stdout),
-                   secure: false,
-                   tls_cert: nil,
-                   tls_key: nil)
+                   tls_config: nil,
+                   logger: Logger.new($stdout))
       @handler = handler
       @host = host
       @port = port
       @logger = logger
       @server = nil
-      @secure = secure
-      @tls_cert = tls_cert
-      @tls_key = tls_key
+      @tls_config = tls_config
     end
 
     def listen
