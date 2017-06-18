@@ -24,7 +24,7 @@ end
 srv = RGRPC::Server.new(handler: Service.new,
                         host: 'localhost',
                         port: 8080,
-                        secure: true,
-                        tls_cert: File.read('/tmp/test.crt'),
-                        tls_key: File.read('/tmp/test.key'))
+                        secure: false)
+                        #tls_cert: File.read('/tmp/test.crt'),
+                        #tls_key: File.read('/tmp/test.key'))
 srv.listen

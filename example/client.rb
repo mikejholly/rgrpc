@@ -5,16 +5,21 @@ require_relative 'service_pb'
 
 start = Time.now
 
-cl = RGRPC::Client.new(host: 'localhost',
-                       port: 8080,
-                       secure: true)
+cl = RGRPC::Client.new('localhost', 8080)
 
 puts "connect: #{Time.now - start}"
 
 start = Time.now
-resp = cl.rpc('foo.service/Search',
-              FooRequest.new(name: 'foo'),
-              returns: FooResponse)
+
+future = cl.rpc('foo.service/Search',
+                FooRequest.new(name: 'foo'),
+                RGRPC::Coder.new(FooRequest, FooResponse))
+
+puts "HIHIH"
+
+resp = future.value
+
+cl.close
 
 puts "req: #{Time.now - start}"
 
